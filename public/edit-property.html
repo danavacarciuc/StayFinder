@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Edit Property</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<section class="host-dashboard">
+
+  <div class="dashboard-header">
+    <a href="/dashboard.html" style="text-decoration:none; color:inherit; font-size:20px;">← Back</a>
+    <h2>Edit Property</h2>
+    <div></div>
+  </div>
+
+  <div style="background:white; border-radius:20px; padding:40px; max-width:700px; margin:0 auto; box-shadow:0 4px 20px rgba(0,0,0,0.08);">
+
+    <form id="editPropertyForm" enctype="multipart/form-data" style="display:flex;flex-direction:column;gap:14px;">
+
+      <input type="text" name="title" id="title" placeholder="Title" required />
+      <textarea name="description" id="description" placeholder="Description" style="height:100px;resize:vertical;"></textarea>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <input type="number" name="price" id="price" placeholder="Price per night" required />
+        <input type="text" name="address" id="address" placeholder="Exact address" required />
+        <input type="text" name="city" id="city" placeholder="City" required />
+        <input type="text" name="country" id="country" placeholder="Country" required />
+        <input type="number" name="bedrooms" id="bedrooms" placeholder="Bedrooms" />
+        <input type="number" name="bathrooms" id="bathrooms" placeholder="Bathrooms" />
+        <input type="number" name="max_guests" id="max_guests" placeholder="Max guests" />
+        <div>
+          <input type="number" name="weekend_surcharge" id="weekend_surcharge" placeholder="Weekend surcharge %" min="0" max="100" style="width:100%;box-sizing:border-box;" />
+          <p style="font-size:12px;color:#888;margin-top:4px;">Optional — % added on weekend.</p>
+        </div>
+        <div>
+          <input type="number" name="cleaning_fee" id="cleaning_fee" placeholder="Cleaning fee ($)" min="0" style="width:100%;box-sizing:border-box;" />
+          <p style="font-size:12px;color:#888;margin-top:4px;">One-time cleaning fee.</p>
+        </div>
+      </div>
+
+      <h4 style="margin:10px 0 6px 0;">Facilities</h4>
+      <div class="facility-card-grid" id="facilitiesGrid">
+        <label class="facility-card"><input type="checkbox" name="facilities" value="WiFi"><span>WiFi</span></label>
+        <label class="facility-card"><input type="checkbox" name="facilities" value="Pool"><span>Pool</span></label>
+        <label class="facility-card"><input type="checkbox" name="facilities" value="Parking"><span>Parking</span></label>
+        <label class="facility-card"><input type="checkbox" name="facilities" value="Air Conditioning"><span>Air Conditioning</span></label>
+        <label class="facility-card"><input type="checkbox" name="facilities" value="Kitchen"><span>Kitchen</span></label>
+        <label class="facility-card"><input type="checkbox" name="facilities" value="Washing Machine"><span>Washing Machine</span></label>
+        <label class="facility-card"><input type="checkbox" name="facilities" value="TV"><span>TV</span></label>
+        <label class="facility-card"><input type="checkbox" name="facilities" value="Self Check-in"><span>Self Check-in</span></label>
+        <label class="facility-card"><input type="checkbox" name="facilities" value="Hair Dryer"><span>Hair Dryer</span></label>
+        <label class="facility-card"><input type="checkbox" name="facilities" value="Dryer"><span>Dryer</span></label>
+        <label class="facility-card"><input type="checkbox" name="facilities" value="Grill"><span>Grill</span></label>
+      </div>
+
+      <div id="currentImages" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;"></div>
+
+      <input type="file" name="images" multiple style="margin-top:10px;" />
+      <p style="font-size:12px;color:#888;margin-top:-8px;">Upload new images to replace existing ones.</p>
+
+      <button type="submit" style="
+        padding:14px;
+        background:var(--primary);
+        color:white;
+        border:none;
+        border-radius:30px;
+        font-weight:600;
+        font-size:15px;
+        cursor:pointer;
+        margin-top:6px;
+      ">Save Changes</button>
+
+    </form>
+  </div>
+
+</section>
+
+<script>
+const token = localStorage.getItem("token");
+const params = new URLSearchParams(window.location.search);
+const propertyId = params.get("id");
+
+async function loadProperty() {
+  const res = await fetch(`/api/properties/${propertyId}`, {
+    headers: { Authorization: "Bearer " + token }
+  });
+  const p = await res.json();
+
+  document.getElementById("title").value = p.title || "";
+  document.getElementById("description").value = p.description || "";
+  document.getElementById("price").value = p.price || "";
+  document.getElementById("address").value = p.address || "";
+  document.getElementById("city").value = p.city || "";
+  document.getElementById("country").value = p.country || "";
+  document.getElementById("bedrooms").value = p.bedrooms || "";
+  document.getElementById("bathrooms").value = p.bathrooms || "";
+  document.getElementById("max_guests").value = p.max_guests || "";
+  document.getElementById("weekend_surcharge").value = p.weekend_surcharge || "";
+  document.getElementById("cleaning_fee").value = p.cleaning_fee || "";
+
+  // Bifează facilitățile existente
+  const existing = (p.facilities || "").split(",").map(f => f.trim()).filter(Boolean);
+  document.querySelectorAll("#facilitiesGrid input[type=checkbox]").forEach(cb => {
+    cb.checked = existing.includes(cb.value);
+  });
+
+  // Imagini existente
+  const imgRes = await fetch(`/api/properties/${propertyId}/images`);
+  const images = await imgRes.json();
+  const container = document.getElementById("currentImages");
+  images.forEach(img => {
+    const el = document.createElement("img");
+    el.src = img.image_path;
+    el.style = "width:100px;height:70px;object-fit:cover;border-radius:8px;";
+    container.appendChild(el);
+  });
+}
+
+document.getElementById("editPropertyForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const formData = new FormData(e.target);
+
+  const res = await fetch(`/api/properties/${propertyId}`, {
+    method: "PUT",
+    headers: { Authorization: "Bearer " + token },
+    body: formData
+  });
+
+  const data = await res.json();
+  if (data.success) {
+    window.location.href = "/dashboard.html";
+  } else {
+    alert("Error: " + (data.error || "Unknown error"));
+  }
+});
+
+loadProperty();
+</script>
+<script src="/scripts/favorites.js"></script>
+
+</body>
+</html>

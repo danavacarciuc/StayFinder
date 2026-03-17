@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Settings - StayFinder</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { background: #f7f7f7; }
+
+    .settings-wrapper {
+      max-width: 600px;
+      margin: 100px auto 60px;
+      padding: 0 24px;
+    }
+
+    .settings-header {
+      margin-bottom: 32px;
+    }
+
+    .settings-header h1 {
+      font-size: 26px;
+      font-weight: 700;
+      margin: 0 0 4px 0;
+      color: #222;
+    }
+
+    .settings-header p {
+      color: #888;
+      font-size: 14px;
+      margin: 0;
+    }
+
+    .settings-card {
+      background: white;
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+      margin-bottom: 16px;
+    }
+
+    .settings-card h3 {
+      font-size: 16px;
+      font-weight: 700;
+      margin: 0 0 6px 0;
+      color: #222;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .settings-card h3 i {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    .settings-card p {
+      color: #888;
+      font-size: 13px;
+      margin: 0 0 20px 0;
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #888;
+      margin-bottom: 6px;
+      letter-spacing: 0.4px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 12px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+      box-sizing: border-box;
+      font-family: inherit;
+    }
+
+    .form-group input:focus { border-color: #6b705c; }
+
+    .btn-save {
+      padding: 12px 28px;
+      background: #6b705c;
+      color: white;
+      border: none;
+      border-radius: 30px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-save:hover { background: #4f553f; }
+    .btn-save:disabled { background: #ccc; cursor: not-allowed; }
+
+    .btn-danger {
+      padding: 12px 28px;
+      background: white;
+      color: #c62828;
+      border: 1.5px solid #c62828;
+      border-radius: 30px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-danger:hover { background: #c62828; color: white; }
+
+    .msg {
+      margin-top: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      min-height: 18px;
+    }
+
+    .msg.success { color: #2e7d32; }
+    .msg.error { color: #c62828; }
+
+    .danger-zone {
+      border: 1.5px solid #fdecea;
+    }
+
+    .user-info-bar {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 20px;
+      background: #f9f9f9;
+      border-radius: 14px;
+      margin-bottom: 28px;
+    }
+
+    .user-info-bar img {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .user-info-bar .name { font-weight: 700; font-size: 15px; }
+    .user-info-bar .email { font-size: 13px; color: #888; }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-container">
+    <a href="/index.html" class="logo">StayFinder</a>
+    <div class="nav-buttons">
+      <div id="navModeContainer"></div>
+    </div>
+  </div>
+</nav>
+
+<div class="settings-wrapper">
+
+  <div class="settings-header">
+    <h1>Settings</h1>
+    <p>Manage your account details and security</p>
+  </div>
+
+  <!-- User info -->
+  <div class="user-info-bar">
+    <img id="settingsAvatar" src="https://www.gravatar.com/avatar/?d=mp">
+    <div>
+      <div class="name" id="settingsName">Loading...</div>
+      <div class="email" id="settingsEmail"></div>
+    </div>
+  </div>
+
+  <!-- Change Email -->
+  <div class="settings-card">
+    <h3>
+      <i style="background:#e8f0fe;color:#1a56db;" class="fa-solid fa-envelope"></i>
+      Change Email
+    </h3>
+    <p>Update the email address associated with your account.</p>
+    <div class="form-group">
+      <label>New Email Address</label>
+      <input type="email" id="newEmail" placeholder="new@email.com">
+    </div>
+    <div class="form-group">
+      <label>Confirm with Password</label>
+      <input type="password" id="emailPassword" placeholder="Your current password">
+    </div>
+    <button class="btn-save" onclick="changeEmail()">Update Email</button>
+    <div class="msg" id="emailMsg"></div>
+  </div>
+
+  <!-- Change Password -->
+  <div class="settings-card">
+    <h3>
+      <i style="background:#e8f5e9;color:#2e7d32;" class="fa-solid fa-lock"></i>
+      Change Password
+    </h3>
+    <p>Use a strong password with at least 6 characters.</p>
+    <div class="form-group">
+      <label>Current Password</label>
+      <input type="password" id="currentPassword" placeholder="Current password">
+    </div>
+    <div class="form-group">
+      <label>New Password</label>
+      <input type="password" id="newPassword" placeholder="New password (min 6 characters)">
+    </div>
+    <div class="form-group">
+      <label>Confirm New Password</label>
+      <input type="password" id="confirmPassword" placeholder="Confirm new password">
+    </div>
+    <button class="btn-save" onclick="changePassword()">Update Password</button>
+    <div class="msg" id="passwordMsg"></div>
+  </div>
+
+  <!-- Delete Account -->
+  <div class="settings-card danger-zone">
+    <h3>
+      <i style="background:#fdecea;color:#c62828;" class="fa-solid fa-triangle-exclamation"></i>
+      Delete Account
+    </h3>
+    <p>Permanently delete your account and all associated data. This action cannot be undone.</p>
+    <div class="form-group">
+      <label>Confirm with Password</label>
+      <input type="password" id="deletePassword" placeholder="Your password">
+    </div>
+    <button class="btn-danger" onclick="deleteAccount()">Delete My Account</button>
+    <div class="msg" id="deleteMsg"></div>
+  </div>
+
+</div>
+
+<script src="/scripts/navbar-auth.js"></script>
+<script src="/scripts/support.js"></script>
+<script>
+const token = localStorage.getItem("token");
+if (!token) window.location.href = "/login.html";
+
+// Load user info
+fetch("/api/users/me", { headers: { Authorization: "Bearer " + token } })
+  .then(r => r.json())
+  .then(user => {
+    document.getElementById("settingsName").textContent = user.name;
+    document.getElementById("settingsEmail").textContent = user.email;
+    if (user.avatar) document.getElementById("settingsAvatar").src = user.avatar;
+  });
+
+function showMsg(id, text, type) {
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.className = "msg " + type;
+  if (type === "success") setTimeout(() => el.textContent = "", 4000);
+}
+
+async function changeEmail() {
+  const email = document.getElementById("newEmail").value.trim();
+  const password = document.getElementById("emailPassword").value;
+
+  if (!email || !password) return showMsg("emailMsg", "Please fill in all fields.", "error");
+  if (!email.includes("@")) return showMsg("emailMsg", "Please enter a valid email.", "error");
+
+  const btn = event.target;
+  btn.disabled = true;
+  btn.textContent = "Updating...";
+
+  const res = await fetch("/api/users/me/email", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+    body: JSON.stringify({ email, password })
+  });
+  const data = await res.json();
+
+  btn.disabled = false;
+  btn.textContent = "Update Email";
+
+  if (res.ok) {
+    showMsg("emailMsg", "✅ Email updated successfully!", "success");
+    document.getElementById("settingsEmail").textContent = email;
+    document.getElementById("newEmail").value = "";
+    document.getElementById("emailPassword").value = "";
+  } else {
+    showMsg("emailMsg", data.error || "Failed to update email.", "error");
+  }
+}
+
+async function changePassword() {
+  const currentPassword = document.getElementById("currentPassword").value;
+  const newPassword = document.getElementById("newPassword").value;
+  const confirmPassword = document.getElementById("confirmPassword").value;
+
+  if (!currentPassword || !newPassword || !confirmPassword)
+    return showMsg("passwordMsg", "Please fill in all fields.", "error");
+  if (newPassword.length < 6)
+    return showMsg("passwordMsg", "New password must be at least 6 characters.", "error");
+  if (newPassword !== confirmPassword)
+    return showMsg("passwordMsg", "Passwords do not match.", "error");
+
+  const btn = event.target;
+  btn.disabled = true;
+  btn.textContent = "Updating...";
+
+  const res = await fetch("/api/users/me/password", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+    body: JSON.stringify({ currentPassword, newPassword })
+  });
+  const data = await res.json();
+
+  btn.disabled = false;
+  btn.textContent = "Update Password";
+
+  if (res.ok) {
+    showMsg("passwordMsg", "✅ Password updated successfully!", "success");
+    document.getElementById("currentPassword").value = "";
+    document.getElementById("newPassword").value = "";
+    document.getElementById("confirmPassword").value = "";
+  } else {
+    showMsg("passwordMsg", data.error || "Failed to update password.", "error");
+  }
+}
+
+async function deleteAccount() {
+  const password = document.getElementById("deletePassword").value;
+  if (!password) return showMsg("deleteMsg", "Please enter your password.", "error");
+
+  if (!confirm("Are you absolutely sure you want to delete your account? This cannot be undone.")) return;
+
+  const res = await fetch("/api/users/me", {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+    body: JSON.stringify({ password })
+  });
+  const data = await res.json();
+
+  if (res.ok) {
+    localStorage.removeItem("token");
+    alert("Your account has been deleted.");
+    window.location.href = "/index.html";
+  } else {
+    showMsg("deleteMsg", data.error || "Failed to delete account.", "error");
+  }
+}
+</script>
+
+</body>
+</html>

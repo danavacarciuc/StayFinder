@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Panel - StayFinder</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f5f5f5; color: #333; }
+
+    nav {
+      background: #2d3e2f;
+      color: white;
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    nav .logo { font-size: 20px; font-weight: 700; color: white; text-decoration: none; }
+    nav span { font-size: 14px; opacity: 0.7; }
+
+    .container { max-width: 1200px; margin: 32px auto; padding: 0 24px; }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      border-bottom: 2px solid #ddd;
+      padding-bottom: 0;
+    }
+    .tab-btn {
+      padding: 10px 24px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 600;
+      color: #888;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      transition: all 0.2s;
+    }
+    .tab-btn.active { color: #2d3e2f; border-bottom-color: #2d3e2f; }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .stat-card {
+      background: white;
+      border-radius: 16px;
+      padding: 20px 24px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    .stat-card .num { font-size: 32px; font-weight: 700; color: #2d3e2f; }
+    .stat-card .label { font-size: 13px; color: #888; margin-top: 4px; }
+
+    table { width: 100%; border-collapse: collapse; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+    th { background: #2d3e2f; color: white; padding: 12px 16px; text-align: left; font-size: 13px; }
+    td { padding: 12px 16px; border-bottom: 1px solid #f0f0f0; font-size: 14px; vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #fafafa; }
+
+    .avatar-sm { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
+    .prop-img { width: 56px; height: 40px; border-radius: 8px; object-fit: cover; }
+
+    .btn-delete {
+      padding: 6px 14px;
+      background: #fdecea;
+      color: #c62828;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .btn-edit {
+      padding: 6px 14px;
+      background: #e8f5e9;
+      color: #2e7d32;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      margin-right: 6px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .badge-host { background: #e8f5e9; color: #2e7d32; }
+    .badge-guest { background: #f5f5f5; color: #888; }
+    .badge-admin { background: #fff3e0; color: #e65100; }
+    .badge-confirmed { background: #e8f5e9; color: #2e7d32; }
+    .badge-cancelled { background: #fdecea; color: #c62828; }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: white;
+      border-radius: 20px;
+      padding: 32px;
+      width: 520px;
+      max-width: 90vw;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal h3 { margin-bottom: 20px; font-size: 18px; }
+    .modal label { display: block; font-size: 13px; color: #888; margin-bottom: 4px; margin-top: 14px; }
+    .modal input, .modal textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      font-size: 14px;
+    }
+    .modal textarea { min-height: 80px; resize: vertical; }
+    .modal-actions { display: flex; gap: 10px; margin-top: 24px; justify-content: flex-end; }
+    .btn-save {
+      padding: 10px 24px;
+      background: #2d3e2f;
+      color: white;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn-cancel-modal {
+      padding: 10px 24px;
+      background: #f5f5f5;
+      color: #333;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+
+    #accessDenied {
+      display: none;
+      text-align: center;
+      padding: 80px 24px;
+    }
+    #accessDenied h2 { font-size: 28px; color: #c62828; margin-bottom: 12px; }
+
+    .current-images {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+      margin-bottom: 4px;
+    }
+    .current-images img {
+      width: 80px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 2px solid #eee;
+    }
+
+    .facilities-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 16px;
+      margin-top: 6px;
+    }
+    .facilities-grid label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      color: #333;
+      margin: 0;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .facilities-grid input[type=checkbox] {
+      width: auto;
+      padding: 0;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/index.html" class="logo">StayFinder Admin</a>
+  <span id="adminName"></span>
+</nav>
+
+<div id="accessDenied">
+  <h2>Access Denied</h2>
+  <p>You don't have permission to view this page.</p>
+</div>
+
+<div class="container" id="adminPanel" style="display:none;">
+
+  <div class="stats">
+    <div class="stat-card">
+      <div class="num" id="statUsers">-</div>
+      <div class="label">Total Users</div>
+    </div>
+    <div class="stat-card">
+      <div class="num" id="statProperties">-</div>
+      <div class="label">Properties</div>
+    </div>
+    <div class="stat-card">
+      <div class="num" id="statReservations">-</div>
+      <div class="label">Reservations</div>
+    </div>
+    <div class="stat-card">
+      <div class="num" id="statReviews">-</div>
+      <div class="label">Reviews</div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="users">Users</button>
+    <button class="tab-btn" data-tab="properties">Properties</button>
+    <button class="tab-btn" data-tab="reservations">Reservations</button>
+    <button class="tab-btn" data-tab="reviews">Reviews</button>
+  </div>
+
+  <div class="tab-content active" id="tab-users">
+    <table>
+      <thead>
+        <tr>
+          <th>Avatar</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Location</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="usersTable"></tbody>
+    </table>
+  </div>
+
+  <div class="tab-content" id="tab-properties">
+    <div style="margin-bottom:16px;display:flex;gap:10px;align-items:center;">
+      <input type="text" id="propSearchInput" placeholder="Search by title or city..." 
+        style="padding:8px 14px;border:1px solid #ddd;border-radius:10px;font-size:14px;width:280px;outline:none;">
+      <button onclick="loadProperties(1, document.getElementById('propSearchInput').value)"
+        style="padding:8px 18px;background:#2d3e2f;color:white;border:none;border-radius:10px;cursor:pointer;font-size:14px;">
+        Search
+      </button>
+      <button onclick="document.getElementById('propSearchInput').value='';loadProperties(1,'')"
+        style="padding:8px 18px;background:#f5f5f5;color:#333;border:1px solid #ddd;border-radius:10px;cursor:pointer;font-size:14px;">
+        Clear
+      </button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Image</th>
+          <th>Title</th>
+          <th>City</th>
+          <th>Price/night</th>
+          <th>Host</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="propertiesTable"></tbody>
+    </table>
+    <div id="propsPagination"></div>
+  </div>
+
+  <div class="tab-content" id="tab-reservations">
+    <table>
+      <thead>
+        <tr>
+          <th>Guest</th>
+          <th>Property</th>
+          <th>Check-in</th>
+          <th>Check-out</th>
+          <th>Total</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="reservationsTable"></tbody>
+    </table>
+    <div id="resPagination"></div>
+  </div>
+
+  <div class="tab-content" id="tab-reviews">
+    <table>
+      <thead>
+        <tr>
+          <th>Guest</th>
+          <th>Property</th>
+          <th>Rating</th>
+          <th>Comment</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="reviewsTable"></tbody>
+    </table>
+    <div id="revsPagination"></div>
+  </div>
+
+</div>
+
+<!-- Edit Property Modal -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <h3>Edit Property</h3>
+    <input type="hidden" id="editPropId">
+    <label>Title</label>
+    <input type="text" id="editTitle">
+    <label>Address</label>
+    <input type="text" id="editAddress">
+    <label>City</label>
+    <input type="text" id="editCity">
+    <label>Price per night ($)</label>
+    <input type="number" id="editPrice">
+    <label>Description</label>
+    <textarea id="editDescription"></textarea>
+    <label>Facilities</label>
+    <div class="facilities-grid" id="facilitiesCheckboxes">
+      <label><input type="checkbox" value="WiFi"> WiFi</label>
+      <label><input type="checkbox" value="Pool"> Pool</label>
+      <label><input type="checkbox" value="Parking"> Parking</label>
+      <label><input type="checkbox" value="Air Conditioning"> Air Conditioning</label>
+      <label><input type="checkbox" value="Kitchen"> Kitchen</label>
+      <label><input type="checkbox" value="Washing Machine"> Washing Machine</label>
+      <label><input type="checkbox" value="TV"> TV</label>
+      <label><input type="checkbox" value="Self Check-in"> Self Check-in</label>
+      <label><input type="checkbox" value="Hair Dryer"> Hair Dryer</label>
+      <label><input type="checkbox" value="Dryer"> Dryer</label>
+      <label><input type="checkbox" value="Grill"> Grill</label>
+    </div>
+    <label>Current Images</label>
+    <div class="current-images" id="currentImages"></div>
+    <label>Upload New Images (înlocuiește toate pozele existente)</label>
+    <input type="file" id="editImages" multiple accept="image/*">
+    <div class="modal-actions">
+      <button class="btn-cancel-modal" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" onclick="saveProperty()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const token = localStorage.getItem("token");
+let allProps = [];
+
+async function init() {
+  if (!token) { showDenied(); return; }
+
+  const res = await fetch("/api/users/me", {
+    headers: { Authorization: "Bearer " + token }
+  });
+  const user = await res.json();
+
+  if (!user.is_admin) { showDenied(); return; }
+
+  document.getElementById("adminName").textContent = "Welcome, " + user.name;
+  document.getElementById("adminPanel").style.display = "block";
+
+  loadAll();
+}
+
+function showDenied() {
+  document.getElementById("accessDenied").style.display = "block";
+}
+
+async function loadAll() {
+  // Încarcă stats separat (rapid)
+  const statsRes = await fetch("/api/admin/stats", { headers: { Authorization: "Bearer " + token } });
+  const stats = await statsRes.json();
+  document.getElementById("statUsers").textContent = stats.users;
+  document.getElementById("statProperties").textContent = stats.properties;
+  document.getElementById("statReservations").textContent = stats.reservations;
+  document.getElementById("statReviews").textContent = stats.reviews;
+
+  // Încarcă taburile
+  await Promise.all([loadUsers(), loadProperties(), loadReservations(), loadReviews()]);
+}
+
+async function loadUsers() {
+  const res = await fetch("/api/admin/users", { headers: { Authorization: "Bearer " + token } });
+  const users = await res.json();
+
+  const tbody = document.getElementById("usersTable");
+  tbody.innerHTML = "";
+  users.forEach(u => {
+    const role = u.is_admin ? "admin" : u.is_host ? "host" : "guest";
+    tbody.innerHTML += `
+      <tr>
+        <td><img class="avatar-sm" src="${u.avatar || 'https://www.gravatar.com/avatar/?d=mp'}"></td>
+        <td>${u.name}</td>
+        <td>${u.email}</td>
+        <td><span class="badge badge-${role}">${role}</span></td>
+        <td>${u.location || '-'}</td>
+        <td>${u.is_admin ? '' : `<button class="btn-delete" onclick="deleteUser(${u.id})">Delete</button>`}</td>
+      </tr>
+    `;
+  });
+}
+
+let currentPropsPage = 1;
+let propSearch = "";
+
+async function loadProperties(page = 1, search = "") {
+  currentPropsPage = page;
+  propSearch = search;
+
+  const res = await fetch(`/api/admin/properties?page=${page}&limit=20&search=${encodeURIComponent(search)}`, {
+    headers: { Authorization: "Bearer " + token }
+  });
+  const data = await res.json();
+  allProps = data.properties;
+
+  const tbody = document.getElementById("propertiesTable");
+  tbody.innerHTML = "";
+  data.properties.forEach(p => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><img class="prop-img" src="${p.image || 'https://images.unsplash.com/photo-1568605114967-8130f3a36994'}"></td>
+      <td>${p.title}</td>
+      <td>${p.city}</td>
+      <td>$${p.price}</td>
+      <td>${p.host_name}<br><small style="color:#888">${p.host_email}</small></td>
+      <td>
+        <button class="btn-edit" data-id="${p.id}">Edit</button>
+        <button class="btn-delete" onclick="deleteProperty(${p.id})">Delete</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  document.querySelectorAll("#propertiesTable .btn-edit").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = parseInt(btn.dataset.id);
+      const prop = allProps.find(p => p.id === id);
+      if (prop) openEditModal(prop);
+    });
+  });
+
+  renderPagination("propsPagination", data.page, data.totalPages, (p) => loadProperties(p, propSearch));
+}
+
+let currentResPage = 1;
+
+async function loadReservations(page = 1) {
+  currentResPage = page;
+
+  const res = await fetch(`/api/admin/reservations?page=${page}&limit=20`, {
+    headers: { Authorization: "Bearer " + token }
+  });
+  const data = await res.json();
+
+  const tbody = document.getElementById("reservationsTable");
+  tbody.innerHTML = "";
+  data.reservations.forEach(r => {
+    tbody.innerHTML += `
+      <tr>
+        <td>${r.guest_name}<br><small style="color:#888">${r.guest_email}</small></td>
+        <td>${r.property_title}<br><small style="color:#888">${r.city}</small></td>
+        <td>${r.check_in}</td>
+        <td>${r.check_out}</td>
+        <td>$${r.total_price}</td>
+        <td><span class="badge badge-${r.status}">${r.status}</span></td>
+        <td><button class="btn-delete" onclick="deleteReservation(${r.id})">Delete</button></td>
+      </tr>
+    `;
+  });
+
+  renderPagination("resPagination", data.page, data.totalPages, (p) => loadReservations(p));
+}
+
+let currentRevPage = 1;
+
+async function loadReviews(page = 1) {
+  currentRevPage = page;
+
+  const res = await fetch(`/api/admin/reviews?page=${page}&limit=20`, {
+    headers: { Authorization: "Bearer " + token }
+  });
+  const data = await res.json();
+
+  const tbody = document.getElementById("reviewsTable");
+  tbody.innerHTML = "";
+  data.reviews.forEach(r => {
+    tbody.innerHTML += `
+      <tr>
+        <td>${r.guest_name}</td>
+        <td>${r.property_title}</td>
+        <td>⭐ ${r.rating}/5</td>
+        <td>${r.comment || '-'}</td>
+        <td><button class="btn-delete" onclick="deleteReview(${r.id})">Delete</button></td>
+      </tr>
+    `;
+  });
+
+  renderPagination("revsPagination", data.page, data.totalPages, (p) => loadReviews(p));
+}
+
+function renderPagination(containerId, currentPage, totalPages, onPageChange) {
+  let container = document.getElementById(containerId);
+  if (!container) {
+    container = document.createElement("div");
+    container.id = containerId;
+    container.style.cssText = "display:flex;gap:8px;justify-content:center;padding:16px 0;flex-wrap:wrap;";
+    document.getElementById(containerId.replace("Pagination", "Table"))?.parentNode?.appendChild(container);
+  }
+  container.innerHTML = "";
+  if (totalPages <= 1) return;
+
+  const btnStyle = (active) => `
+    padding:6px 14px;border-radius:8px;border:1px solid #ddd;
+    background:${active ? '#2d3e2f' : 'white'};
+    color:${active ? 'white' : '#333'};
+    cursor:pointer;font-size:13px;font-weight:600;
+  `;
+
+  // Prev
+  if (currentPage > 1) {
+    const btn = document.createElement("button");
+    btn.textContent = "←";
+    btn.style.cssText = btnStyle(false);
+    btn.onclick = () => onPageChange(currentPage - 1);
+    container.appendChild(btn);
+  }
+
+  // Page numbers
+  let start = Math.max(1, currentPage - 2);
+  let end = Math.min(totalPages, currentPage + 2);
+  for (let i = start; i <= end; i++) {
+    const btn = document.createElement("button");
+    btn.textContent = i;
+    btn.style.cssText = btnStyle(i === currentPage);
+    btn.onclick = () => onPageChange(i);
+    container.appendChild(btn);
+  }
+
+  // Next
+  if (currentPage < totalPages) {
+    const btn = document.createElement("button");
+    btn.textContent = "→";
+    btn.style.cssText = btnStyle(false);
+    btn.onclick = () => onPageChange(currentPage + 1);
+    container.appendChild(btn);
+  }
+
+  // Info
+  const info = document.createElement("span");
+  info.textContent = `Page ${currentPage} of ${totalPages}`;
+  info.style.cssText = "font-size:13px;color:#888;align-self:center;margin-left:8px;";
+  container.appendChild(info);
+}
+
+async function deleteUser(id) {
+  if (!confirm("Delete this user?")) return;
+  await fetch(`/api/admin/users/${id}`, { method: "DELETE", headers: { Authorization: "Bearer " + token } });
+  loadUsers();
+}
+
+async function deleteProperty(id) {
+  if (!confirm("Delete this property?")) return;
+  await fetch(`/api/admin/properties/${id}`, { method: "DELETE", headers: { Authorization: "Bearer " + token } });
+  loadProperties();
+}
+
+async function deleteReservation(id) {
+  if (!confirm("Delete this reservation?")) return;
+  await fetch(`/api/admin/reservations/${id}`, { method: "DELETE", headers: { Authorization: "Bearer " + token } });
+  loadReservations();
+}
+
+async function deleteReview(id) {
+  if (!confirm("Delete this review?")) return;
+  await fetch(`/api/admin/reviews/${id}`, { method: "DELETE", headers: { Authorization: "Bearer " + token } });
+  loadReviews();
+}
+
+async function openEditModal(prop) {
+  document.getElementById("editPropId").value = prop.id;
+  document.getElementById("editTitle").value = prop.title || "";
+  document.getElementById("editAddress").value = prop.address || "";
+  document.getElementById("editCity").value = prop.city || "";
+  document.getElementById("editPrice").value = prop.price || "";
+  document.getElementById("editDescription").value = prop.description || "";
+  document.getElementById("editImages").value = "";
+
+  // Bifează facilitățile existente
+  const existing = (prop.facilities || "").split(",").map(f => f.trim()).filter(Boolean);
+  document.querySelectorAll("#facilitiesCheckboxes input[type=checkbox]").forEach(cb => {
+    cb.checked = existing.includes(cb.value);
+  });
+
+  // Load current images
+  try {
+    const res = await fetch(`/api/admin/properties/${prop.id}/images`, {
+      headers: { Authorization: "Bearer " + token }
+    });
+    const images = await res.json();
+    const container = document.getElementById("currentImages");
+    container.innerHTML = "";
+    if (images.length === 0) {
+      container.innerHTML = "<small style='color:#aaa'>No images yet.</small>";
+    } else {
+      images.forEach(img => {
+        container.innerHTML += `<img src="${img.image_path}" title="${img.image_path}">`;
+      });
+    }
+  } catch(e) {
+    document.getElementById("currentImages").innerHTML = "<small style='color:#aaa'>Could not load images.</small>";
+  }
+
+  document.getElementById("editModal").classList.add("show");
+}
+
+function closeModal() {
+  document.getElementById("editModal").classList.remove("show");
+}
+
+async function saveProperty() {
+  const id = document.getElementById("editPropId").value;
+
+  const selectedFacilities = Array.from(
+    document.querySelectorAll("#facilitiesCheckboxes input[type=checkbox]:checked")
+  ).map(cb => cb.value).join(",");
+
+  const res1 = await fetch(`/api/admin/properties/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+    body: JSON.stringify({
+      title: document.getElementById("editTitle").value,
+      address: document.getElementById("editAddress").value,
+      city: document.getElementById("editCity").value,
+      price: document.getElementById("editPrice").value,
+      description: document.getElementById("editDescription").value,
+      facilities: selectedFacilities,
+    })
+  });
+
+  if (!res1.ok) { alert("Failed to save property details."); return; }
+
+  const files = document.getElementById("editImages").files;
+  if (files.length > 0) {
+    const formData = new FormData();
+    for (const file of files) formData.append("images", file);
+
+    const res2 = await fetch(`/api/admin/properties/${id}/images`, {
+      method: "POST",
+      headers: { Authorization: "Bearer " + token },
+      body: formData
+    });
+
+    if (!res2.ok) { alert("Property saved but image upload failed."); }
+  }
+
+  closeModal();
+  loadProperties();
+}
+
+document.querySelectorAll(".tab-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".tab-content").forEach(t => t.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
+  });
+});
+
+init();
+
+document.addEventListener("DOMContentLoaded", () => {
+  const searchInput = document.getElementById("propSearchInput");
+  if (searchInput) {
+    searchInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") loadProperties(1, searchInput.value);
+    });
+  }
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Properties</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    .filter-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 16px;
+      background: white;
+      border: 1.5px solid #ddd;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: #333;
+      white-space: nowrap;
+    }
+    .filter-btn:hover { border-color: #555; }
+    .filter-btn.active { background: #2b2b2b; color: white; border-color: #2b2b2b; }
+
+    .filters-panel {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      z-index: 9999;
+      background: rgba(0,0,0,0.4);
+      align-items: flex-start;
+      justify-content: center;
+      padding-top: 80px;
+    }
+    .filters-panel.show { display: flex; }
+
+    .filters-box {
+      background: white;
+      border-radius: 20px;
+      padding: 28px 32px;
+      width: 540px;
+      max-width: 95vw;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    }
+
+    .filters-box h3 {
+      font-size: 18px;
+      font-weight: 700;
+      margin: 0 0 24px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .filters-box h3 button {
+      background: none;
+      border: none;
+      font-size: 22px;
+      cursor: pointer;
+      color: #666;
+      padding: 0;
+    }
+
+    .filter-section {
+      margin-bottom: 24px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .filter-section:last-child { border-bottom: none; margin-bottom: 0; }
+
+    .filter-section h4 {
+      font-size: 14px;
+      font-weight: 700;
+      margin: 0 0 14px 0;
+      color: #222;
+    }
+
+    .price-range-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .price-range-row input[type=number] {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid #ddd;
+      border-radius: 10px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .price-range-row input:focus { border-color: #555; }
+    .price-range-row span { color: #888; font-size: 14px; }
+
+    .price-slider-wrapper {
+      margin-top: 12px;
+    }
+
+    .price-slider-wrapper input[type=range] {
+      width: 100%;
+      accent-color: #2b2b2b;
+    }
+
+    .facilities-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .facility-chip {
+      padding: 6px 14px;
+      border: 1.5px solid #ddd;
+      border-radius: 20px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.15s;
+      background: white;
+      color: #333;
+      font-weight: 500;
+    }
+
+    .facility-chip.selected {
+      background: #2b2b2b;
+      color: white;
+      border-color: #2b2b2b;
+    }
+
+    .bedrooms-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .bedroom-chip {
+      padding: 6px 16px;
+      border: 1.5px solid #ddd;
+      border-radius: 20px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.15s;
+      background: white;
+      color: #333;
+      font-weight: 500;
+    }
+
+    .bedroom-chip.selected {
+      background: #2b2b2b;
+      color: white;
+      border-color: #2b2b2b;
+    }
+
+    .rating-chips {
+      display: flex;
+      gap: 8px;
+    }
+
+    .rating-chip {
+      padding: 6px 14px;
+      border: 1.5px solid #ddd;
+      border-radius: 20px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.15s;
+      background: white;
+      color: #333;
+      font-weight: 500;
+    }
+
+    .rating-chip.selected {
+      background: #2b2b2b;
+      color: white;
+      border-color: #2b2b2b;
+    }
+
+    .sort-select {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid #ddd;
+      border-radius: 10px;
+      font-size: 14px;
+      outline: none;
+      background: white;
+      cursor: pointer;
+    }
+
+    .filter-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .btn-clear-filters {
+      flex: 1;
+      padding: 12px;
+      background: white;
+      border: 1.5px solid #ddd;
+      border-radius: 30px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-clear-filters:hover { border-color: #555; }
+
+    .btn-apply-filters {
+      flex: 2;
+      padding: 12px;
+      background: #2b2b2b;
+      color: white;
+      border: none;
+      border-radius: 30px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-apply-filters:hover { background: #444; }
+
+    .active-filters-bar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding: 0 50px 12px;
+      align-items: center;
+    }
+
+    .active-filter-tag {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #f5f5f5;
+      border: 1px solid #e0e0e0;
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .active-filter-tag button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      color: #888;
+      padding: 0;
+      line-height: 1;
+    }
+
+    .results-count {
+      font-size: 13px;
+      color: #888;
+      margin-left: auto;
+    }
+  </style>
+</head>
+<body>
+<nav class="inner-nav">
+  <a href="/" class="inner-nav-logo">StayFinder</a>
+
+  <div class="inner-nav-search">
+    <input type="text" id="searchInput" placeholder="Search destinations">
+    <input type="date" id="checkinInput">
+    <input type="date" id="checkoutInput">
+    <input type="number" id="guestsInput" placeholder="Guests" min="1">
+    <button class="inner-nav-search-btn">
+      <i class="fa-solid fa-magnifying-glass"></i>
+    </button>
+    <button class="filter-btn" id="filtersToggleBtn" onclick="toggleFilters()">
+      <i class="fa-solid fa-sliders"></i> Filters
+    </button>
+  </div>
+
+  <div class="inner-nav-actions" id="navActions">
+    <div id="navModeContainer"></div>
+    <a href="/login.html" class="inner-nav-btn">Login</a>
+    <a href="/register.html" class="inner-nav-btn">Sign up</a>
+  </div>
+</nav>
+
+<!-- ACTIVE FILTERS BAR -->
+<div class="active-filters-bar" id="activeFiltersBar"></div>
+
+<section class="properties-section">
+  <div class="container">
+    <h2 id="cityTitle"></h2>
+    <div id="propertiesContainer" class="properties-grid"></div>
+  </div>
+</section>
+
+<!-- FILTERS PANEL -->
+<div class="filters-panel" id="filtersPanel" onclick="handlePanelClick(event)">
+  <div class="filters-box">
+    <h3>
+      Filters
+      <button onclick="toggleFilters()">✕</button>
+    </h3>
+
+    <!-- Sort -->
+    <div class="filter-section">
+      <h4>Sort by</h4>
+      <select class="sort-select" id="sortSelect">
+        <option value="">Default</option>
+        <option value="price_asc">Price: Low to High</option>
+        <option value="price_desc">Price: High to Low</option>
+        <option value="rating_desc">Highest Rated</option>
+        <option value="reviews_desc">Most Reviewed</option>
+      </select>
+    </div>
+
+    <!-- Price Range -->
+    <div class="filter-section">
+      <h4>Price per night</h4>
+      <div class="price-range-row">
+        <input type="number" id="minPrice" placeholder="Min $" min="0">
+        <span>—</span>
+        <input type="number" id="maxPrice" placeholder="Max $" min="0">
+      </div>
+    </div>
+
+    <!-- Bedrooms -->
+    <div class="filter-section">
+      <h4>Bedrooms</h4>
+      <div class="bedrooms-row" id="bedroomsChips">
+        <div class="bedroom-chip" data-val="1">1</div>
+        <div class="bedroom-chip" data-val="2">2</div>
+        <div class="bedroom-chip" data-val="3">3</div>
+        <div class="bedroom-chip" data-val="4">4+</div>
+      </div>
+    </div>
+
+    <!-- Rating -->
+    <div class="filter-section">
+      <h4>Minimum rating</h4>
+      <div class="rating-chips" id="ratingChips">
+        <div class="rating-chip" data-val="3">3+ ⭐</div>
+        <div class="rating-chip" data-val="4">4+ ⭐</div>
+        <div class="rating-chip" data-val="4.5">4.5+ ⭐</div>
+      </div>
+    </div>
+
+    <!-- Facilities -->
+    <div class="filter-section">
+      <h4>Facilities</h4>
+      <div class="facilities-grid" id="facilitiesChips">
+        <div class="facility-chip" data-val="WiFi">WiFi</div>
+        <div class="facility-chip" data-val="Pool">Pool</div>
+        <div class="facility-chip" data-val="Parking">Parking</div>
+        <div class="facility-chip" data-val="Air Conditioning">Air Conditioning</div>
+        <div class="facility-chip" data-val="Kitchen">Kitchen</div>
+        <div class="facility-chip" data-val="Washing Machine">Washing Machine</div>
+        <div class="facility-chip" data-val="TV">TV</div>
+        <div class="facility-chip" data-val="Self Check-in">Self Check-in</div>
+        <div class="facility-chip" data-val="Hair Dryer">Hair Dryer</div>
+        <div class="facility-chip" data-val="Dryer">Dryer</div>
+        <div class="facility-chip" data-val="Grill">Grill</div>
+      </div>
+    </div>
+
+    <div class="filter-actions">
+      <button class="btn-clear-filters" onclick="clearFilters()">Clear all</button>
+      <button class="btn-apply-filters" onclick="applyFilters()">Show results</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleFilters() {
+  document.getElementById("filtersPanel").classList.toggle("show");
+  document.getElementById("filtersToggleBtn").classList.toggle("active");
+}
+function handlePanelClick(e) {
+  if (e.target === document.getElementById("filtersPanel")) toggleFilters();
+}
+function clearFilters() {
+  document.getElementById("minPrice").value = "";
+  document.getElementById("maxPrice").value = "";
+  document.getElementById("sortSelect").value = "";
+  document.querySelectorAll(".bedroom-chip,.rating-chip,.facility-chip").forEach(c => c.classList.remove("selected"));
+  if (typeof activeFilters !== "undefined") {
+    activeFilters = { minPrice:null, maxPrice:null, bedrooms:null, minRating:null, facilities:[], sort:"" };
+    if (typeof renderProperties === "function") renderProperties(allProperties);
+    if (typeof renderActiveFilterTags === "function") renderActiveFilterTags();
+  }
+  toggleFilters();
+}
+function applyFilters() {
+  if (typeof activeFilters !== "undefined") {
+    activeFilters.minPrice = parseFloat(document.getElementById("minPrice").value) || null;
+    activeFilters.maxPrice = parseFloat(document.getElementById("maxPrice").value) || null;
+    activeFilters.sort = document.getElementById("sortSelect").value;
+    const selBedroom = document.querySelector(".bedroom-chip.selected");
+    activeFilters.bedrooms = selBedroom ? selBedroom.dataset.val : null;
+    const selRating = document.querySelector(".rating-chip.selected");
+    activeFilters.minRating = selRating ? parseFloat(selRating.dataset.val) : null;
+    activeFilters.facilities = Array.from(document.querySelectorAll(".facility-chip.selected")).map(c => c.dataset.val);
+    if (typeof renderProperties === "function") renderProperties(allProperties);
+    if (typeof renderActiveFilterTags === "function") renderActiveFilterTags();
+  }
+  toggleFilters();
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".bedroom-chip").forEach(c => c.addEventListener("click", () => {
+    document.querySelectorAll(".bedroom-chip").forEach(x => x.classList.remove("selected"));
+    c.classList.toggle("selected");
+  }));
+  document.querySelectorAll(".rating-chip").forEach(c => c.addEventListener("click", () => {
+    document.querySelectorAll(".rating-chip").forEach(x => x.classList.remove("selected"));
+    c.classList.toggle("selected");
+  }));
+  document.querySelectorAll(".facility-chip").forEach(c => c.addEventListener("click", () => c.classList.toggle("selected")));
+});
+</script>
+<script src="scripts/properties.js"></script>
+<script src="/scripts/navbar-auth.js"></script>
+<script src="/scripts/favorites.js"></script>
+<script src="/scripts/support.js"></script>
+</body>
+</html>

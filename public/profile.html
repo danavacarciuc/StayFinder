@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My Profile - StayFinder</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<nav class="navbar">
+  <div class="nav-container">
+    <a href="/index.html" class="logo">StayFinder</a>
+    <div class="nav-buttons">
+      <div id="navModeContainer"></div>
+      <a href="login.html" class="btn-outline">Login</a>
+      <a href="/register.html" class="btn-outline">Sign up</a>
+    </div>
+  </div>
+</nav>
+
+<section class="profile-container">
+
+  <!-- LEFT SIDE -->
+  <div class="profile-sidebar">
+
+    <div class="profile-main-info">
+      <div class="avatar-wrapper">
+        <img id="profileAvatar" class="profile-avatar">
+        <label for="avatarInput" class="avatar-edit">✎</label>
+        <input type="file" id="avatarInput" hidden>
+      </div>
+
+      <h2 id="profileName"></h2>
+
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;">
+        <p id="profileLocation" style="margin:0;color:#888;">No location added</p>
+        <button id="editLocationBtn" class="edit-btn">✎</button>
+      </div>
+      <div id="locationEditWrapper" style="display:none;margin-top:8px;">
+        <input type="text" id="locationInput" placeholder="Add your location..." style="padding:6px 10px;border:1px solid #ddd;border-radius:8px;font-size:14px;">
+        <button id="saveLocationBtn" class="save-btn" style="margin-top:6px;">Save</button>
+      </div>
+    </div>
+
+    <div class="profile-menu">
+      <button data-section="about" class="profile-tab active">About me</button>
+      <button data-section="wishlist" class="profile-tab">Favorites</button>
+      <button data-section="trips" class="profile-tab">Previous trips</button>
+    </div>
+
+  </div>
+
+  <!-- RIGHT SIDE -->
+  <div class="profile-content">
+
+    <!-- ABOUT -->
+    <div id="aboutSection" class="profile-section active-section">
+      <h3>Description</h3>
+      <p id="userDescription"></p>
+      <div id="descriptionEditWrapper" style="display:none;">
+        <textarea id="descriptionInput" placeholder="Add a description..." style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:14px;resize:vertical;min-height:100px;box-sizing:border-box;"></textarea>
+        <button id="saveDescriptionBtn" class="save-btn" style="margin-top:8px;">Save</button>
+      </div>
+      <button id="editDescriptionBtn" class="edit-btn">✎ Edit</button>
+
+      <h3 style="margin-top:32px;">My Reviews</h3>
+      <div id="userReviews"></div>
+    </div>
+
+    <!-- WISHLIST -->
+    <div id="wishlistSection" class="profile-section">
+      <h3>My Wishlist</h3>
+      <div id="wishlistContainer"></div>
+    </div>
+
+    <!-- TRIPS -->
+    <div id="tripsSection" class="profile-section">
+      <div id="travelHistory"></div>
+    </div>
+
+  </div>
+
+</section>
+
+<script src="scripts/profile.js"></script>
+<script src="/scripts/navbar-auth.js"></script>
+<script src="/scripts/favorites.js"></script>
+<script src="/scripts/support.js"></script>
+</body>
+</html>

@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Host Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"> 
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-container">
+    <a href="/index.html" class="logo">StayFinder</a>
+    <div class="nav-buttons">
+      <div id="navModeContainer"></div>
+      <a href="login.html" class="btn-outline">Login</a>
+      <a href="/register.html" class="btn-outline">Sign up</a>
+    </div>
+  </div>
+</nav>
+
+<section class="host-dashboard">
+
+  <div class="dashboard-header">
+    <h2>Your Properties</h2>
+    <div style="display:flex;gap:12px;">
+      <a href="/analytics.html" id="analyticsBtn" style="
+        padding:12px 24px;
+        background:white;
+        color:#6b705c;
+        border:2px solid #6b705c;
+        border-radius:30px;
+        font-weight:600;
+        font-size:15px;
+        text-decoration:none;
+        display:flex;
+        align-items:center;
+        gap:8px;
+        transition:all 0.2s;
+      " onmouseover="this.style.background='#6b705c';this.style.color='white'" 
+         onmouseout="this.style.background='white';this.style.color='#6b705c'">
+        📊 Analytics
+      </a>
+      <a href="/platform-analytics.html" id="platformAnalyticsBtn" style="
+        display:none;
+        padding:12px 24px;
+        background:white;
+        color:#1a56db;
+        border:2px solid #1a56db;
+        border-radius:30px;
+        font-weight:600;
+        font-size:15px;
+        text-decoration:none;
+        align-items:center;
+        gap:8px;
+        transition:all 0.2s;
+      " onmouseover="this.style.background='#1a56db';this.style.color='white'" 
+         onmouseout="this.style.background='white';this.style.color='#1a56db'">
+        🌐 Platform Analytics
+      </a>
+      <button onclick="openModal()" id="addPropertyBtn">+ Add Property</button>
+    </div>
+  </div>
+
+  <div id="hostPropertiesList" class="dashboard-list"></div>
+
+</section>
+
+<!-- MODAL -->
+<div id="propertyModal" style="
+  display:none;
+  position:fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  background:rgba(0,0,0,0.5);
+  z-index:9999;
+  justify-content:center;
+  align-items:flex-start;
+  overflow-y:auto;
+  padding:40px 0;
+  box-sizing:border-box;
+">
+  <div style="
+    background:white;
+    border-radius:20px;
+    padding:40px;
+    width:600px;
+    max-width:90%;
+    margin:0 auto;
+    position:relative;
+    max-height:85vh;
+    overflow-y:auto;
+  ">
+    <button onclick="closeModal()" style="
+      position:absolute;
+      top:16px; right:16px;
+      background:none;
+      border:none;
+      font-size:22px;
+      cursor:pointer;
+      color:#666;
+    ">✕</button>
+
+    <h3 style="margin:0 0 24px 0;">Add a new property</h3>
+
+    <form id="hostPropertyForm" enctype="multipart/form-data" style="display:flex;flex-direction:column;gap:14px;">
+
+      <input type="text" name="title" placeholder="Title" required />
+      <textarea name="description" placeholder="Description" style="height:100px;resize:vertical;"></textarea>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div>
+          <input type="number" name="price" id="priceInput" placeholder="Price per night" required />
+          <div id="priceSuggestion" style="display:none;margin-top:8px;padding:10px 14px;border-radius:12px;background:#f0f7ff;border:1px solid #c5deff;font-size:13px;"></div>
+        </div>
+        <input type="text" name="address" placeholder="Exact address" required />
+        <input type="text" name="city" id="cityInput" placeholder="City" required />
+        <input type="text" name="country" placeholder="Country" required />
+        <input type="number" name="bedrooms" id="bedroomsInput" placeholder="Bedrooms" />
+        <input type="number" name="bathrooms" placeholder="Bathrooms" />
+        <input type="number" name="max_guests" placeholder="Max guests" />
+        <div>
+          <input type="number" name="weekend_surcharge" placeholder="Weekend surcharge %" min="0" max="100" style="width:100%;box-sizing:border-box;" />
+          <p style="font-size:12px;color:#888;margin-top:4px;">Optional — % added on Friday/Saturday nights.</p>
+        </div>
+        <div>
+          <input type="number" name="cleaning_fee" placeholder="Cleaning fee ($)" min="0" style="width:100%;box-sizing:border-box;" />
+          <p style="font-size:12px;color:#888;margin-top:4px;">One-time cleaning fee shown at checkout.</p>
+        </div>
+      </div>
+
+      <h4 style="margin:10px 0 6px 0;">Facilities</h4>
+      <div class="facility-card-grid">
+        <label class="facility-card"><input type="checkbox" name="facilities" value="WiFi"><span>WiFi</span></label>
+        <label class="facility-card"><input type="checkbox" name="facilities" value="Pool"><span>Pool</span></label>
+        <label class="facility-card"><input type="checkbox" name="facilities" value="Parking"><span>Parking</span></label>
+        <label class="facility-card"><input type="checkbox" name="facilities" value="Air Conditioning"><span>Air Conditioning</span></label>
+        <label class="facility-card"><input type="checkbox" name="facilities" value="Kitchen"><span>Kitchen</span></label>
+        <label class="facility-card"><input type="checkbox" name="facilities" value="Washing Machine"><span>Washing Machine</span></label>
+        <label class="facility-card"><input type="checkbox" name="facilities" value="TV"><span>TV</span></label>
+        <label class="facility-card"><input type="checkbox" name="facilities" value="Self Check-in"><span>Self Check-in</span></label>
+        <label class="facility-card"><input type="checkbox" name="facilities" value="Hair Dryer"><span>Hair Dryer</span></label>
+        <label class="facility-card"><input type="checkbox" name="facilities" value="Dryer"><span>Dryer</span></label>
+        <label class="facility-card"><input type="checkbox" name="facilities" value="Grill"><span>Grill</span></label>
+      </div>
+
+      <input type="file" name="images" multiple style="margin-top:10px;" />
+      <button type="submit" style="
+        padding:14px;
+        background:var(--primary);
+        color:white;
+        border:none;
+        border-radius:30px;
+        font-weight:600;
+        font-size:15px;
+        cursor:pointer;
+        margin-top:6px;
+      ">Create Property</button>
+
+    </form>
+  </div>
+</div>
+
+<div class="host-dashboard" style="margin-top:40px;">
+  <div class="dashboard-header">
+    <h2>Reservations</h2>
+  </div>
+  <div id="hostReservationsList"></div>
+</div>
+
+<script>
+function openModal() {
+  const modal = document.getElementById("propertyModal");
+  modal.style.display = "flex";
+  document.body.style.overflow = "hidden";
+}
+
+function closeModal() {
+  const modal = document.getElementById("propertyModal");
+  modal.style.display = "none";
+  document.body.style.overflow = "";
+}
+
+document.getElementById("propertyModal").addEventListener("click", (e) => {
+  if (e.target === document.getElementById("propertyModal")) closeModal();
+});
+</script>
+
+<script src="scripts/dashboard.js"></script>
+<script src="/scripts/navbar-auth.js"></script>
+<script src="/scripts/favorites.js"></script>
+<script src="/scripts/support.js"></script>
+<script>
+// Arată butonul Platform Analytics doar pentru admin
+fetch("/api/users/me", { headers: { Authorization: "Bearer " + localStorage.getItem("token") } })
+  .then(r => r.json())
+  .then(user => {
+    if (user.is_admin) {
+      const btn = document.getElementById("platformAnalyticsBtn");
+      if (btn) btn.style.display = "flex";
+    }
+  }).catch(() => {});
+
+// ===== SMART PRICE SUGGESTER =====
+let priceDebounce;
+
+function triggerPriceSuggestion() {
+  clearTimeout(priceDebounce);
+  priceDebounce = setTimeout(fetchPriceSuggestion, 600);
+}
+
+async function fetchPriceSuggestion() {
+  const city = document.getElementById("cityInput")?.value.trim();
+  const bedrooms = document.getElementById("bedroomsInput")?.value || 1;
+  const suggestionDiv = document.getElementById("priceSuggestion");
+  const priceInput = document.getElementById("priceInput");
+
+  if (!city || city.length < 2) {
+    if (suggestionDiv) suggestionDiv.style.display = "none";
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/analytics/price-suggestion?city=${encodeURIComponent(city)}&bedrooms=${bedrooms}`, {
+      headers: { Authorization: "Bearer " + localStorage.getItem("token") }
+    });
+    const data = await res.json();
+
+    if (!data.suggestion) {
+      suggestionDiv.style.display = "none";
+      return;
+    }
+
+    suggestionDiv.style.display = "block";
+    suggestionDiv.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+        <div>
+          <div style="font-weight:700;font-size:14px;color:#1a56db;margin-bottom:2px;">
+            💡 Suggested price: <span style="font-size:16px;">$${data.suggestion}/night</span>
+          </div>
+          <div style="color:#666;font-size:12px;">${data.message}</div>
+        </div>
+        <button onclick="document.getElementById('priceInput').value=${data.suggestion}" style="
+          padding:6px 14px;background:#1a56db;color:white;border:none;
+          border-radius:20px;cursor:pointer;font-size:12px;font-weight:600;
+          white-space:nowrap;
+        ">Use this price</button>
+      </div>
+      <div style="margin-top:10px;display:flex;gap:8px;align-items:center;">
+        <div style="flex:1;height:6px;background:#e0e0e0;border-radius:3px;position:relative;">
+          <div style="
+            position:absolute;left:0;top:0;height:100%;border-radius:3px;
+            background:linear-gradient(90deg,#1a56db,#7b1fa2);
+            width:${Math.min(100, Math.round(((data.suggestion - data.p25) / (data.p75 - data.p25 || 1)) * 100))}%;
+          "></div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:#888;margin-top:4px;">
+        <span>Budget $${data.p25}</span>
+        <span>
+          <span style="
+            background:${data.competitivenessColor}22;
+            color:${data.competitivenessColor};
+            padding:2px 8px;border-radius:10px;font-weight:700;
+          ">${data.competitivenessLabel}</span>
+        </span>
+        <span>Premium $${data.p75}</span>
+      </div>
+    `;
+  } catch(e) {
+    if (suggestionDiv) suggestionDiv.style.display = "none";
+  }
+}
+
+// Atașează listeners direct (nu DOMContentLoaded — DOM-ul e deja gata)
+const _cityInput = document.getElementById("cityInput");
+const _bedroomsInput = document.getElementById("bedroomsInput");
+if (_cityInput) _cityInput.addEventListener("input", triggerPriceSuggestion);
+if (_bedroomsInput) _bedroomsInput.addEventListener("input", triggerPriceSuggestion);
+</script>
+</body>
+</html>

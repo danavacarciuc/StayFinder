@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Checkout - StayFinder</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { background: #f7f7f7; }
+
+    .checkout-wrapper {
+      max-width: 900px;
+      margin: 100px auto 60px;
+      padding: 0 24px;
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 40px;
+      align-items: flex-start;
+    }
+
+    .checkout-card {
+      background: white;
+      border-radius: 20px;
+      padding: 32px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    }
+
+    .checkout-card h2 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 28px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #888;
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 14px 16px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 12px;
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.2s;
+      box-sizing: border-box;
+      font-family: inherit;
+    }
+
+    .form-group input:focus { border-color: #222; }
+    .form-group input.error { border-color: #e31c5f; }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .card-icons {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .card-icons img {
+      height: 28px;
+      border-radius: 4px;
+      border: 1px solid #eee;
+      padding: 2px 6px;
+      background: white;
+    }
+
+    .pay-btn {
+      width: 100%;
+      padding: 16px;
+      background: #222;
+      color: white;
+      border: none;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .pay-btn:hover { background: #111; }
+    .pay-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+    .pay-btn .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .security-note {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #888;
+      font-size: 13px;
+      margin-top: 16px;
+      justify-content: center;
+    }
+
+    .test-cards {
+      background: #f0f7ff;
+      border: 1px solid #c5deff;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 24px;
+      font-size: 13px;
+    }
+
+    .test-cards h4 { font-size: 13px; font-weight: 700; margin-bottom: 8px; color: #1a56db; }
+    .test-cards .card-row { display: flex; justify-content: space-between; margin-bottom: 4px; color: #444; }
+    .test-cards code { font-family: monospace; background: #e8f0fe; padding: 2px 6px; border-radius: 4px; font-size: 12px; }
+
+    /* Summary card */
+    .summary-card {
+      background: white;
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      position: sticky;
+      top: 100px;
+    }
+
+    .summary-prop {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 24px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .summary-prop img {
+      width: 90px;
+      height: 70px;
+      object-fit: cover;
+      border-radius: 12px;
+      flex-shrink: 0;
+    }
+
+    .summary-prop-info { flex: 1; }
+    .summary-prop-title { font-weight: 700; font-size: 15px; margin-bottom: 4px; }
+    .summary-prop-city { color: #888; font-size: 13px; }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      color: #444;
+      margin-bottom: 10px;
+    }
+
+    .summary-row.total {
+      font-weight: 700;
+      font-size: 16px;
+      color: #222;
+      border-top: 1px solid #f0f0f0;
+      padding-top: 14px;
+      margin-top: 4px;
+    }
+
+    /* Error/Success messages */
+    .alert {
+      padding: 14px 18px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 20px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .alert-error { background: #fdecea; color: #c62828; border: 1px solid #f5c6c6; }
+    .alert-success { background: #e6f4ea; color: #2e7d32; border: 1px solid #c3e6cb; }
+    .alert.show { display: flex; }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-container">
+    <a href="/index.html" class="logo">StayFinder</a>
+    <div class="nav-buttons">
+      <div id="navModeContainer"></div>
+    </div>
+  </div>
+</nav>
+
+<div class="checkout-wrapper">
+
+  <!-- LEFT: Payment Form -->
+  <div>
+    <div class="checkout-card">
+      <h2>Complete your booking</h2>
+
+      <!-- Test cards info -->
+      <div class="test-cards">
+        <h4>🧪 Test cards</h4>
+        <div class="card-row"><span>✅ Success</span> <code>4242 4242 4242 4242</code></div>
+        <div class="card-row"><span>❌ Declined</span> <code>4000 0000 0000 0002</code></div>
+        <div class="card-row"><span>Expiry / CVV</span> <code>any future date / any 3 digits</code></div>
+      </div>
+
+      <div id="alertError" class="alert alert-error">
+        <i class="fa-solid fa-circle-xmark"></i>
+        <span id="alertErrorMsg">Your card was declined. Please try a different card.</span>
+      </div>
+
+      <div id="alertSuccess" class="alert alert-success">
+        <i class="fa-solid fa-circle-check"></i>
+        <span>Payment successful! Redirecting...</span>
+      </div>
+
+      <div class="card-icons">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/800px-Mastercard-logo.svg.png" alt="Mastercard">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/800px-Visa_Inc._logo.svg.png" alt="Visa">
+      </div>
+
+      <div class="form-group">
+        <label>Card number</label>
+        <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19" autocomplete="cc-number">
+      </div>
+
+      <div class="form-group">
+        <label>Cardholder name</label>
+        <input type="text" id="cardName" placeholder="Name on card" autocomplete="cc-name">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Expiry date</label>
+          <input type="text" id="cardExpiry" placeholder="MM / YY" maxlength="7" autocomplete="cc-exp">
+        </div>
+        <div class="form-group">
+          <label>CVV</label>
+          <input type="text" id="cardCvv" placeholder="123" maxlength="3" autocomplete="cc-csc">
+        </div>
+      </div>
+
+      <button class="pay-btn" id="payBtn">
+        <div class="spinner" id="paySpinner"></div>
+        <span id="payBtnText">Pay <span id="payBtnAmount"></span></span>
+      </button>
+
+      <div class="security-note">
+        <i class="fa-solid fa-lock"></i>
+        Secured with 256-bit encryption
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Booking Summary -->
+  <div class="summary-card">
+    <div class="summary-prop">
+      <img id="summaryImage" src="https://images.unsplash.com/photo-1568605114967-8130f3a36994">
+      <div class="summary-prop-info">
+        <div class="summary-prop-title" id="summaryTitle">Loading...</div>
+        <div class="summary-prop-city" id="summaryCity"></div>
+      </div>
+    </div>
+
+    <div class="summary-row">
+      <span id="summaryNightsLabel">Price</span>
+      <span id="summaryNightsPrice"></span>
+    </div>
+    <div class="summary-row">
+      <span>Cleaning fee</span>
+      <span id="summaryCleaningFee"></span>
+    </div>
+    <div class="summary-row">
+      <span>Service fee</span>
+      <span id="summaryServiceFee"></span>
+    </div>
+    <div class="summary-row total">
+      <span>Total</span>
+      <span id="summaryTotal"></span>
+    </div>
+
+    <div style="margin-top:20px;padding-top:20px;border-top:1px solid #f0f0f0;font-size:13px;color:#888;">
+      <div style="margin-bottom:6px;">📅 <span id="summaryCheckin"></span> → <span id="summaryCheckout"></span></div>
+      <div>👥 <span id="summaryGuests"></span></div>
+    </div>
+  </div>
+
+</div>
+
+<script src="/scripts/navbar-auth.js"></script>
+<script src="/scripts/checkout.js"></script>
+<script src="/scripts/support.js"></script>
+</body>
+</html>

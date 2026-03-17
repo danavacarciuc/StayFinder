@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Platform Analytics - StayFinder</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { background: #f5f5f5; }
+    .analytics-wrapper { max-width: 1100px; margin: 40px auto; padding: 0 24px 60px; }
+    .analytics-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:28px; }
+    .analytics-header h1 { font-size:26px; font-weight:700; color:#222; margin:0; }
+    .back-btn { display:flex; align-items:center; gap:8px; text-decoration:none; color:#666; font-size:14px; font-weight:500; }
+    .back-btn:hover { color:#222; }
+
+    .summary-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-bottom:20px; }
+    .summary-card { background:white; border-radius:14px; padding:16px; box-shadow:0 2px 12px rgba(0,0,0,0.06); }
+    .summary-card .icon { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14px; margin-bottom:8px; }
+    .summary-card .value { font-size:22px; font-weight:700; color:#222; line-height:1; margin-bottom:4px; }
+    .summary-card .label { font-size:12px; color:#888; }
+
+    .charts-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
+    .chart-card { background:white; border-radius:14px; padding:18px; box-shadow:0 2px 12px rgba(0,0,0,0.06); }
+    .chart-card.full { grid-column:span 2; }
+    .chart-card h3 { font-size:15px; font-weight:700; color:#222; margin:0 0 4px 0; }
+    .chart-subtitle { font-size:12px; color:#888; margin-bottom:16px; }
+    .chart-container { position:relative; height:220px; }
+
+    .table-card { background:white; border-radius:14px; padding:18px; box-shadow:0 2px 12px rgba(0,0,0,0.06); margin-bottom:16px; }
+    .table-card h3 { font-size:15px; font-weight:700; margin:0 0 4px 0; }
+    .analytics-table { width:100%; border-collapse:collapse; }
+    .analytics-table th { text-align:left; font-size:11px; font-weight:700; text-transform:uppercase; color:#888; padding:8px 10px; border-bottom:1px solid #f0f0f0; }
+    .analytics-table td { padding:10px; font-size:13px; border-bottom:1px solid #f9f9f9; color:#333; }
+    .analytics-table tr:last-child td { border-bottom:none; }
+
+    .loading-analytics { text-align:center; padding:80px; color:#888; }
+    .loading-analytics i { font-size:2rem; display:block; margin-bottom:12px; animation:spin 1s linear infinite; color:#6b705c; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    .avatar-sm { width:32px; height:32px; border-radius:50%; object-fit:cover; }
+
+    .bar-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+    .bar-label { width:110px; font-size:12px; color:#555; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .bar-track { flex:1; height:10px; background:#f0f0f0; border-radius:5px; overflow:hidden; }
+    .bar-fill { height:100%; border-radius:5px; background:linear-gradient(90deg,#6b705c,#a3a380); }
+    .bar-val { width:50px; font-size:12px; font-weight:700; color:#333; text-align:right; }
+
+    @media(max-width:900px) {
+      .summary-grid { grid-template-columns:repeat(2,1fr); }
+      .charts-grid { grid-template-columns:1fr; }
+      .chart-card.full { grid-column:span 1; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-container">
+    <a href="/index.html" class="logo">StayFinder</a>
+    <div class="nav-buttons"><div id="navModeContainer"></div></div>
+  </div>
+</nav>
+
+<div class="analytics-wrapper">
+  <div class="analytics-header">
+    <h1>🌐 Platform Analytics</h1>
+    <a href="/dashboard.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
+  </div>
+
+  <div id="analyticsContent">
+    <div class="loading-analytics">
+      <i class="fa-solid fa-spinner"></i>
+      Loading platform data...
+    </div>
+  </div>
+</div>
+
+<script src="/scripts/navbar-auth.js"></script>
+<script src="/scripts/support.js"></script>
+<script>
+const token = localStorage.getItem("token");
+if (!token) window.location.href = "/login.html";
+
+const PRIMARY = "#6b705c";
+const PRIMARY_LIGHT = "#a3a380";
+const ACCENT = "#e0a800";
+const COLORS = ["#6b705c","#a3a380","#e0a800","#1a56db","#e31c5f","#2e7d32","#7b1fa2","#00838f","#ef6c00","#c62828"];
+
+async function load() {
+  const res = await fetch("/api/analytics/platform", {
+    headers: { Authorization: "Bearer " + token }
+  });
+
+  if (res.status === 403) {
+    document.getElementById("analyticsContent").innerHTML = `
+      <div style="text-align:center;padding:80px;color:#c62828;">
+        <i class="fa-solid fa-lock" style="font-size:3rem;display:block;margin-bottom:16px;"></i>
+        <h3>Access Denied</h3><p>Admin only.</p>
+      </div>`;
+    return;
+  }
+
+  const d = await res.json();
+  const { summary, monthlyRevenue, monthlyBookings, topCities, topHosts,
+          priceBuckets, ratingDist, bookingsByDow, newUsers, continentData } = d;
+
+  const cancRate = summary.totalReservations > 0
+    ? Math.round((summary.cancelledReservations / summary.totalReservations) * 100) : 0;
+
+  document.getElementById("analyticsContent").innerHTML = `
+    <!-- Summary -->
+    <div class="summary-grid">
+      <div class="summary-card">
+        <div class="icon" style="background:#e8f5e9;color:#2e7d32;"><i class="fa-solid fa-users"></i></div>
+        <div class="value">${summary.totalUsers}</div>
+        <div class="label">Total Users</div>
+      </div>
+      <div class="summary-card">
+        <div class="icon" style="background:#e8f0fe;color:#1a56db;"><i class="fa-solid fa-house"></i></div>
+        <div class="value">${summary.totalProperties}</div>
+        <div class="label">Properties</div>
+      </div>
+      <div class="summary-card">
+        <div class="icon" style="background:#fff3e0;color:#e65100;"><i class="fa-solid fa-calendar-check"></i></div>
+        <div class="value">${summary.confirmedReservations}</div>
+        <div class="label">Bookings · ${cancRate}% cancelled</div>
+      </div>
+      <div class="summary-card">
+        <div class="icon" style="background:#fce4ec;color:#e31c5f;"><i class="fa-solid fa-dollar-sign"></i></div>
+        <div class="value">$${Number(summary.totalRevenue || 0).toLocaleString()}</div>
+        <div class="label">Total Revenue</div>
+      </div>
+      <div class="summary-card">
+        <div class="icon" style="background:#f3e5f5;color:#7b1fa2;"><i class="fa-solid fa-star"></i></div>
+        <div class="value">${summary.avgRating || "—"}</div>
+        <div class="label">Avg Rating · ${summary.totalReviews} reviews</div>
+      </div>
+    </div>
+
+    <!-- Charts Row 1 -->
+    <div class="charts-grid">
+      <div class="chart-card full">
+        <h3>Monthly Revenue — Platform</h3>
+        <div class="chart-subtitle">Total confirmed booking revenue across all hosts</div>
+        <div class="chart-container"><canvas id="revenueChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Charts Row 2 -->
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h3>Monthly Bookings</h3>
+        <div class="chart-subtitle">Number of confirmed reservations per month</div>
+        <div class="chart-container"><canvas id="bookingsChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>Properties by Continent</h3>
+        <div class="chart-subtitle">Geographic distribution of listings</div>
+        <div class="chart-container"><canvas id="continentChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Charts Row 3 -->
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h3>Price Distribution</h3>
+        <div class="chart-subtitle">How properties are priced across the platform</div>
+        <div class="chart-container"><canvas id="priceChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>Rating Distribution</h3>
+        <div class="chart-subtitle">Global guest satisfaction scores</div>
+        <div class="chart-container"><canvas id="ratingChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Charts Row 4 -->
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h3>Check-in Day Preference</h3>
+        <div class="chart-subtitle">Which days guests prefer to check in</div>
+        <div class="chart-container"><canvas id="dowChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>New User Registrations</h3>
+        <div class="chart-subtitle">Monthly growth of the platform</div>
+        <div class="chart-container"><canvas id="usersChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Top Cities -->
+    <div class="charts-grid">
+      <div class="table-card" style="grid-column:span 2">
+        <h3>🏙️ Top Cities by Listings</h3>
+        <div class="chart-subtitle" style="margin-bottom:16px;">Most popular destinations on the platform</div>
+        <div id="topCitiesBar"></div>
+      </div>
+    </div>
+
+    <!-- Top Hosts -->
+    <div class="table-card">
+      <h3>🏆 Top Hosts by Revenue</h3>
+      <div class="chart-subtitle" style="margin-bottom:16px;">Best performing hosts on the platform</div>
+      <table class="analytics-table">
+        <thead><tr><th>#</th><th>Host</th><th>Properties</th><th>Bookings</th><th>Revenue</th></tr></thead>
+        <tbody id="topHostsTable"></tbody>
+      </table>
+    </div>
+  `;
+
+  // Labels luni
+  const monthLabels = monthlyRevenue.map(m => {
+    const [y, mo] = m.month.split("-");
+    return new Date(y, mo - 1).toLocaleDateString("en-GB", { month: "short", year: "2-digit" });
+  });
+
+  // 1. Revenue
+  new Chart(document.getElementById("revenueChart"), {
+    type: "bar",
+    data: {
+      labels: monthLabels,
+      datasets: [{ label: "Revenue ($)", data: monthlyRevenue.map(m => m.revenue),
+        backgroundColor: PRIMARY, borderRadius: 6, borderSkipped: false }]
+    },
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false} },
+      scales:{ y:{ beginAtZero:true, grid:{color:"#f0f0f0"}, ticks:{callback:v=>"$"+v.toLocaleString()} }, x:{grid:{display:false}} }
+    }
+  });
+
+  // 2. Bookings
+  new Chart(document.getElementById("bookingsChart"), {
+    type: "line",
+    data: {
+      labels: monthLabels,
+      datasets: [{ label: "Bookings", data: monthlyBookings.map(m => m.count),
+        borderColor: ACCENT, backgroundColor: ACCENT+"22", fill:true, tension:0.4,
+        pointBackgroundColor: ACCENT, pointRadius:4 }]
+    },
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{ y:{beginAtZero:true,grid:{color:"#f0f0f0"}}, x:{grid:{display:false}} }
+    }
+  });
+
+  // 3. Continent Pie
+  new Chart(document.getElementById("continentChart"), {
+    type: "doughnut",
+    data: {
+      labels: continentData.map(c => c.continent),
+      datasets: [{ data: continentData.map(c => c.count), backgroundColor: COLORS, borderWidth:0 }]
+    },
+    options: { responsive:true, maintainAspectRatio:false, cutout:"55%",
+      plugins:{ legend:{position:"right", labels:{font:{size:12}, padding:10}} }
+    }
+  });
+
+  // 4. Price Distribution
+  new Chart(document.getElementById("priceChart"), {
+    type: "bar",
+    data: {
+      labels: priceBuckets.map(p => p.bucket),
+      datasets: [{ label: "Properties", data: priceBuckets.map(p => p.count),
+        backgroundColor: PRIMARY_LIGHT, borderRadius:6, borderSkipped:false }]
+    },
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{ y:{beginAtZero:true,grid:{color:"#f0f0f0"}}, x:{grid:{display:false}} }
+    }
+  });
+
+  // 5. Rating Doughnut
+  new Chart(document.getElementById("ratingChart"), {
+    type: "doughnut",
+    data: {
+      labels: ratingDist.map(r => r.rating + " ★"),
+      datasets: [{ data: ratingDist.map(r => r.count),
+        backgroundColor: ["#ef5350","#ff7043","#ffa726","#66bb6a","#26a69a"], borderWidth:0 }]
+    },
+    options: { responsive:true, maintainAspectRatio:false, cutout:"60%",
+      plugins:{ legend:{position:"right", labels:{font:{size:12}, padding:10}} }
+    }
+  });
+
+  // 6. Day of Week
+  new Chart(document.getElementById("dowChart"), {
+    type: "bar",
+    data: {
+      labels: bookingsByDow.map(d => d.day),
+      datasets: [{ label: "Check-ins", data: bookingsByDow.map(d => d.count),
+        backgroundColor: bookingsByDow.map(d => ["Fri","Sat"].includes(d.day) ? ACCENT : PRIMARY_LIGHT),
+        borderRadius:6, borderSkipped:false }]
+    },
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{ y:{beginAtZero:true,grid:{color:"#f0f0f0"}}, x:{grid:{display:false}} }
+    }
+  });
+
+  // 7. New Users
+  new Chart(document.getElementById("usersChart"), {
+    type: "line",
+    data: {
+      labels: newUsers.map(u => u.month),
+      datasets: [{ label: "New Users", data: newUsers.map(u => u.count),
+        borderColor: "#1a56db", backgroundColor: "#1a56db22", fill:true, tension:0.4,
+        pointBackgroundColor:"#1a56db", pointRadius:4 }]
+    },
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{ y:{beginAtZero:true,grid:{color:"#f0f0f0"}}, x:{grid:{display:false}} }
+    }
+  });
+
+  // 8. Top Cities Bar
+  const maxCount = Math.max(...topCities.map(c => c.property_count));
+  const citiesBar = document.getElementById("topCitiesBar");
+  topCities.forEach(c => {
+    const pct = Math.round((c.property_count / maxCount) * 100);
+    citiesBar.innerHTML += `
+      <div class="bar-row">
+        <div class="bar-label">${c.city}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+        <div class="bar-val">${c.property_count} props</div>
+        <div style="font-size:11px;color:#888;min-width:80px;text-align:right;">$${c.avg_price}/night</div>
+      </div>
+    `;
+  });
+
+  // 9. Top Hosts Table
+  const hostsTable = document.getElementById("topHostsTable");
+  topHosts.forEach((h, i) => {
+    hostsTable.innerHTML += `
+      <tr>
+        <td style="font-weight:700;color:#888;">${i+1}</td>
+        <td>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <img class="avatar-sm" src="${h.avatar || 'https://www.gravatar.com/avatar/?d=mp'}">
+            <div>
+              <div style="font-weight:600;">${h.name}</div>
+              <div style="font-size:11px;color:#888;">${h.email}</div>
+            </div>
+          </div>
+        </td>
+        <td>${h.property_count}</td>
+        <td>${h.total_bookings || 0}</td>
+        <td style="font-weight:700;color:#2e7d32;">$${Number(h.total_revenue || 0).toLocaleString()}</td>
+      </tr>
+    `;
+  });
+}
+
+load();
+</script>
+</body>
+</html>
