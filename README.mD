@@ -21,7 +21,7 @@ StayFinder is a full-stack web platform for booking properties in a hotel-like r
 - npm
 ### Installation
 ```bash
-git clone https://github.com/<your-username>/stayfinder.git
+git clone https://github.com/danavacarciuc/stayfinder.git
 cd stayfinder
 npm install
 ```
