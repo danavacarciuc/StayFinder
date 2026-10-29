@@ -25,15 +25,6 @@ git clone https://github.com/<your-username>/stayfinder.git
 cd stayfinder
 npm install
 ```
-### Environment Variables
-Create a `.env` file in the project root with the required configuration (e.g. Cloudinary credentials, JWT secret, database path). Example:
-```env
-PORT=3000
-JWT_SECRET=your_secret_here
-CLOUDINARY_CLOUD_NAME=your_cloud_name
-CLOUDINARY_API_KEY=your_api_key
-CLOUDINARY_API_SECRET=your_api_secret
-```
 ### Seeding the Database (optional)
 To populate the database with sample data for demonstration purposes:
 ```bash
@@ -44,6 +35,12 @@ node seed_dana.js
 npm start
 ```
 The application will be available at `http://localhost:3000` (or the port set in `.env`).
+## Algorithms
+StayFinder's core differentiator is its data-driven recommendation and analytics layer:
+- **Personalized recommendation engine** — a weighted scoring model that ranks properties for each user based on a combination of booking history, wishlist activity, and review interactions. Each signal is assigned a weight, and properties are scored and ranked accordingly.
+- **Similar properties (content-based filtering)** — uses **cosine similarity** over property feature vectors (price, location, amenities, type, etc.) to surface properties similar to the one a user is currently viewing.
+- **Revenue forecasting** — the host analytics dashboard applies **linear regression** over historical booking data to project expected future revenue.
+These algorithms are documented in detail in the thesis, including the theoretical foundations in Chapter 2 and the implementation specifics in Chapter 3.
 ## Project Structure
 ```
 stayfinder/
